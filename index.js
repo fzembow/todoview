@@ -17,9 +17,13 @@ var config = {
 function listFiles() {
   return new Promise(function(resolve){
     fs.readdirAsync('.').then(function(files){
+
       if (!config.includeHidden) {
         files = files.filter(function(file) { return file[0] != '.' });
       }
+
+
+
       resolve(files);
     });
   });
@@ -79,25 +83,24 @@ function runServer(data) {
   // Remove empty files from the data.
   data = data.filter(function(d) { return Object.keys(d).length; });
 
-  fs.readFile(__dirname + '/templates/index.html', {encoding: "utf-8"}, function(err, template) {
+  var app = express();
 
-    var app = express();
+  app.use('/static', express.static(__dirname + '/static'));
 
-    app.use('/static', express.static(__dirname + '/static'));
-
-    app.get('/', function(req, res){
+  app.get('/', function(req, res){
+    fs.readFile(__dirname + '/templates/index.html', {encoding: "utf-8"}, function(err, template) {
       res.send(template);
     });
-
-    app.get('/todos', function(req, res){
-      res.json(data);
-    });
-
-    app.listen(config.port, function(){
-      open('http://localhost:' + config.port);
-    });
-
   });
+
+  app.get('/todos', function(req, res){
+    res.json(data);
+  });
+
+  app.listen(config.port, function(){
+    open('http://localhost:' + config.port);
+  });
+
 }
 
 if (!module.parent) {

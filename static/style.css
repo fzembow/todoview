@@ -30,6 +30,10 @@ div.line{
   overflow: hidden;
 }
 
+div.line:hover{
+  background: #ddd;
+}
+
 div.line.todoline{
   font-weight: bold;
 }
