@@ -14,6 +14,8 @@ var config = {
 };
 
 
+// TODO: Make this an Emitter? Emit filenames when they are encountered
+// and stream their processing.
 function listFiles(filepath) {
 
   var all_paths = [];
