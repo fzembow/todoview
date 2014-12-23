@@ -46,6 +46,8 @@ app.directive("codeblock", function($window) {
         line.appendChild(lineNumber);
         line.appendChild(lineContent);
         root.appendChild(line);
+
+        // TODO: Use a library to color-code based on language.
       }
     } 
   } 

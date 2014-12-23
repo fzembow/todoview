@@ -57,6 +57,11 @@ function findTodosInFile(filename) {
           });
         }
       }
+
+      if (!matchingLines.length) {
+        resolve({});
+      }
+
       resolve({
         filename: filename,
         todos: matchingLines
