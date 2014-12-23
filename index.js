@@ -8,6 +8,9 @@ Promise.promisifyAll(fs);
 var files = [];
 
 var config = {
+  blacklist: [
+    /^node_modules/
+  ],
   includeHidden: false,
   linesToShow: 9,
   port: 10025
@@ -36,6 +39,11 @@ function listFiles(filepath) {
 
             var promises = [];
             filesAndFolders.forEach(function(f) {
+              for (var i = 0; i < config.blacklist.length; i++) {
+                if (f.match(config.blacklist[i])) {
+                  return;
+                }
+              }
               promises.push(_listFiles(path.join(filepath, f)));
             });
             resolve(Promise.all(promises));
@@ -103,7 +111,7 @@ function findTodosInFile(filename) {
  */
 function runServer(data) {
 
-  // Remove empty files from the data.
+  // Remove any empty files from the data.
   data = data.filter(function(d) { return Object.keys(d).length; });
 
   var app = express();

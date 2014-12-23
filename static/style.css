@@ -36,6 +36,8 @@ div.line:hover{
 
 div.line.todoline{
   font-weight: bold;
+  background: rgb(172, 235, 186);
+  padding: 10px 0;
 }
 
 div.lineNumber{
