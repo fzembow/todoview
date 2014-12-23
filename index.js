@@ -33,20 +33,28 @@ function findTodosInFiles(filenames) {
 
 function findTodosInFile(filename) {
   return new Promise(function(resolve) {
+    // TODO: Use fs.createReadStream? 
     fs.readFile(filename, {encoding: "utf-8"}, function(err, data){
       if (err) {
         resolve({});
         return;
       }
 
-      var matchingLines = {};
+      var matchingLines = [];
       var lines = data.split("\n");
+
       for (var i = 0; i < lines.length; i++) {
         var line = lines[i];
         // TODO: Use a regexp here to only match "TODO" within comments.
         if (line.indexOf("// TODO") != -1) {
-          // TODO: Make this match multiple lines.
-          matchingLines[i] = lines.slice(i - config.linesToShow, i + config.linesToShow);
+
+          matchingLines.push({
+            startLineNumber: i - config.linesToShow,
+            todoLineNumber: i,
+            // TODO: If there are multiple lines of a comment, highlight them all.
+            endLineNumber: i - config.linesToShow,
+            lines: lines.slice(i - config.linesToShow, i + config.linesToShow),
+          });
         }
       }
       resolve({

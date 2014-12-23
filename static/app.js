@@ -16,28 +16,32 @@ app.directive("codeblock", function($window) {
   return { 
     restrict: "EA", 
     scope: {
-      lineNumber: '=',
-      lines: '=',
-
+      todo: '=',
     }, 
     template: "<div class='todo'>",
     link: function(scope, elem, attrs){ 
 
-      var todoLineNumber = scope.lineNumber;
-      var numLines = scope.lines.length;
-
       var root = elem[0].children[0];
-      for (var i = 0; i < numLines; i++) {
+      var todoLineNumber = scope.todo.todoLineNumber;
+
+      var lines = scope.todo.lines;
+      for (var i = 0; i < lines.length; i++) {
         var line = document.createElement("div");
+
+        var currentLineNumber = scope.todo.startLineNumber + i;
+
         line.className = "line";
+        if (currentLineNumber == todoLineNumber) {
+          line.classList.add("todoline");
+        }
 
         var lineNumber = document.createElement("div");
         lineNumber.className = "lineNumber";
-        lineNumber.textContent = i;
+        lineNumber.textContent = currentLineNumber;
 
         var lineContent = document.createElement("div");
         lineContent.className = "lineContent";
-        lineContent.textContent = scope.lines[i];
+        lineContent.textContent = lines[i];
 
         line.appendChild(lineNumber);
         line.appendChild(lineContent);

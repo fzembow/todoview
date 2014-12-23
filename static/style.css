@@ -30,6 +30,10 @@ div.line{
   overflow: hidden;
 }
 
+div.line.todoline{
+  font-weight: bold;
+}
+
 div.lineNumber{
   color: gray;
   float: left;
