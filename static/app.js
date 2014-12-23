@@ -18,37 +18,37 @@ app.directive("codeblock", function($window) {
     scope: {
       todo: '=',
     }, 
-    template: "<div class='todo'>",
+    template: "<div>",
     link: function(scope, elem, attrs){ 
 
       var root = elem[0].children[0];
       var todoLineNumber = scope.todo.todoLineNumber;
 
       var lines = scope.todo.lines;
+
+      var lineNumbers = document.createElement("div");
+      lineNumbers.className = "lineNumbers";
+      root.appendChild(lineNumbers);
+
+      var pre = document.createElement("pre");
+      var code = document.createElement("code");
+      code.textContent = lines.join("\n");
+      pre.appendChild(code);
+      root.appendChild(pre);
+
       for (var i = 0; i < lines.length; i++) {
-        var line = document.createElement("div");
-
         var currentLineNumber = scope.todo.startLineNumber + i;
-
-        line.className = "line";
-        if (currentLineNumber == todoLineNumber) {
-          line.classList.add("todoline");
-        }
-
         var lineNumber = document.createElement("div");
         lineNumber.className = "lineNumber";
         lineNumber.textContent = currentLineNumber;
-
-        var lineContent = document.createElement("div");
-        lineContent.className = "lineContent";
-        lineContent.textContent = lines[i];
-
-        line.appendChild(lineNumber);
-        line.appendChild(lineContent);
-        root.appendChild(line);
-
-        // TODO: Use a library to color-code based on language.
+        if (currentLineNumber == todoLineNumber) {
+          lineNumber.classList.add("todoline");
+        }
+        lineNumbers.appendChild(lineNumber);
       }
+
+      code.classList.add(scope.todo.extension);
+      hljs.highlightBlock(code);
     } 
   } 
 });

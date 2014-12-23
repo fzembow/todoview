@@ -2,14 +2,16 @@ html, body{
   font-family: Helvetica, Arial, "sans-serif";
 }
 
+pre, code {
+  margin: 0;
+}
+
 div.file{
-  padding: 20px;
-  background: #eee;
-  margin: 10px 0;
 }
 
 div.fileheader{
-  margin-bottom:20px;
+  margin:20px 0;
+  font-size: 20px;
 }
 
 div.file .title{
@@ -20,32 +22,44 @@ div.file .title{
 
 div.todo{
   font-family: monospace;
-}
-
-div.todo:not(:last-child){
-  margin: 0 0 50px 0;
-}
-
-div.line{
+  padding: 10px 0;
+  background: #eee;
+  box-shadow: 2px 2px 5px #ddd;
+  position: relative;
   overflow: hidden;
 }
 
-div.line:hover{
-  background: #ddd;
+div.todo:not(:last-child){
+  margin: 0 0 20px 0;
 }
 
-div.line.todoline{
-  font-weight: bold;
-  background: rgb(172, 235, 186);
-  padding: 10px 0;
+div.todo pre{
+  position: absolute;
+  left: 50px;
 }
 
 div.lineNumber{
-  color: gray;
-  float: left;
-  width: 30px;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
-div.lineContent{
-  white-space: pre;
+div.lineNumber.todoline{
+  font-weight: bold;
+  background: rgb(201, 223, 206);
+}
+
+div.lineNumbers{
+  color: gray;
+  float: left;
+  width: 100%;
+  padding-left: 10px;
+}
+
+div.todo pre code.hljs{
+  padding: 0 !important;
+  background: transparent !important;
 }

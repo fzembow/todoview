@@ -1,3 +1,4 @@
+// TODO: Put this up on npm and installable via npm install todoview -g
 var express = require('express'),
     fs = require('fs'),
     open = require('open'),
@@ -7,6 +8,7 @@ Promise.promisifyAll(fs);
 
 var files = [];
 
+// TODO: Config should be configurable from within the app itself.
 var config = {
   blacklist: [
     /^node_modules/
@@ -67,6 +69,9 @@ function findTodosInFiles(filenames) {
 
 
 function findTodosInFile(filename) {
+
+  var fileExtension = path.extname(filename).slice(1);
+
   return new Promise(function(resolve) {
     // TODO: Use fs.createReadStream? 
     fs.readFile(filename, {encoding: "utf-8"}, function(err, data){
@@ -84,6 +89,7 @@ function findTodosInFile(filename) {
         if (line.indexOf("// TODO") != -1) {
 
           matchingLines.push({
+            extension: fileExtension,
             startLineNumber: i - config.linesToShow,
             todoLineNumber: i,
             // TODO: If there are multiple lines of a comment, highlight them all.
