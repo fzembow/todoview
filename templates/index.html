@@ -1,0 +1,35 @@
+<!doctype html>
+<html ng-app="todoview">
+  <head>
+    <title>todoview</title>
+    <link rel=stylesheet type="text/css" href="static/style.css">
+    <script src="static/angular.js"></script>
+    <script src="static/angular-resource.min.js"></script>
+  </head>
+  <body ng-controller="TodoviewController">
+    
+    <h1>todoview</h1>
+
+    <div class="file" ng-repeat="file in files">
+
+      <div class="fileheader">
+        <span class="title">{{file.filename}}</span>
+      </div>
+
+      <div class="todo" ng-repeat="(lineNumber, lines) in file.todos">
+        
+        <div codeblock lineNumber="lineNumber" lines="lines"></div>
+
+<!--
+        <div class="lines">
+          <div class="line" ng-repeat="line in lines track by $index">
+            <div class="linenumber">{{lineNumber}}</div>
+            <div class="lineContent">{{line}}</div>
+          </div>
+        </div>
+      </div>
+-->
+    </div>
+    <script src="static/app.js"></script>
+  </body>
+</html>
