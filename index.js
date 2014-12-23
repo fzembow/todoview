@@ -1,6 +1,7 @@
 var express = require('express'),
     fs = require('fs'),
     open = require('open'),
+    path = require('path'),
     Promise = require('bluebird');
 Promise.promisifyAll(fs);
 
@@ -13,18 +14,38 @@ var config = {
 };
 
 
-// TODO: Make this include recursive files?
-function listFiles() {
+function listFiles(filepath) {
+
+  var all_paths = [];
+
+  function _listFiles(filepath) {
+    return new Promise(function(resolve){
+      fs.lstatAsync(filepath).then(function(stats){
+        if (stats.isFile()) {
+          all_paths.push(filepath);
+          resolve(filepath);
+        } else {
+          fs.readdirAsync(filepath).then(function(filesAndFolders){
+            if (!config.includeHidden) {
+              filesAndFolders = filesAndFolders.filter(function(filename) {
+                return filename[0] != '.';
+              });
+            }
+
+            var promises = [];
+            filesAndFolders.forEach(function(f) {
+              promises.push(_listFiles(path.join(filepath, f)));
+            });
+            resolve(Promise.all(promises));
+          });
+        }
+      });
+    });
+  }
+
   return new Promise(function(resolve){
-    fs.readdirAsync('.').then(function(files){
-
-      if (!config.includeHidden) {
-        files = files.filter(function(file) { return file[0] != '.' });
-      }
-
-
-
-      resolve(files);
+    _listFiles(filepath).then(function(){
+      resolve(all_paths);
     });
   });
 }
@@ -104,7 +125,7 @@ function runServer(data) {
 }
 
 if (!module.parent) {
-  listFiles()
+  listFiles(".")
     .then(findTodosInFiles)
     .then(runServer);
 
