@@ -88,14 +88,18 @@ function findTodosInFile(filename) {
         // TODO: Use a regexp here to only match "TODO" within comments.
         if (line.indexOf("// TODO") != -1) {
 
-          matchingLines.push({
+          var startLineNumber = Math.max(0, i - config.linesToShow);
+          var endLineNumber = Math.min(lines.length - 1, i + config.linesToShow);
+
+          var match = {
             extension: fileExtension,
-            startLineNumber: i - config.linesToShow,
+            startLineNumber: startLineNumber,
             todoLineNumber: i,
             // TODO: If there are multiple lines of a comment, highlight them all.
-            endLineNumber: i - config.linesToShow,
-            lines: lines.slice(i - config.linesToShow, i + config.linesToShow),
-          });
+            endLineNumber: endLineNumber,
+            lines: lines.slice(startLineNumber, endLineNumber),
+          };
+          matchingLines.push(match);
         }
       }
 
