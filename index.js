@@ -49,8 +49,6 @@ function findTodosInFiles(filenames) {
 
 function findTodosInFile(filename) {
 
-  var fileExtension = path.extname(filename).slice(1);
-
   return new Promise(function(resolve) {
     // TODO: Use fs.createReadStream?
     fs.readFile(filename, {encoding: "utf-8"}, function(err, data){
@@ -84,8 +82,6 @@ function findTodosInFile(filename) {
         var endLineIndex = Math.min(lines.length - 1, todoEndLineIndex + config.linesToShow + 1);
 
         var todo = {
-          // TODO: Extension doesn't change between TODOs, so no point in passing it like this.
-          extension: fileExtension,
           startLineNumber: startLineIndex + 1,
           startTodoLineNumber: lineIndex + 1,
           endTodoLineNumber: todoEndLineIndex + 1,
@@ -98,6 +94,7 @@ function findTodosInFile(filename) {
       if (todos.length) {
         resolve({
           filename: filename,
+          extension: path.extname(filename).slice(1),
           todos: todos
         });
       } else {

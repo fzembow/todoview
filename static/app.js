@@ -16,6 +16,7 @@ app.directive("codeblock", function($window) {
   return { 
     restrict: "EA", 
     scope: {
+      file: '=',
       todo: '=',
     }, 
     template: "<div>",
@@ -49,7 +50,7 @@ app.directive("codeblock", function($window) {
         lineNumbers.appendChild(lineNumber);
       }
 
-      code.classList.add(scope.todo.extension);
+      code.classList.add(scope.file.extension);
       hljs.highlightBlock(code);
     } 
   } 
