@@ -1,3 +1,5 @@
+#! /usr/bin/env node
+
 // TODO: Put this up on npm and installable via npm install todoview -g
 var express = require('express'),
     fs = require('fs-extended'),

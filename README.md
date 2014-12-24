@@ -18,7 +18,7 @@ But it's not ideal -- it's hard to see a high-level view of all outstanding TODO
 
 First, install todoview:
 
-`npm install todoview -g`
+`sudo npm install todoview -g`
 
 Then, run `todoview` in the directory in which you are working. A browser window will open, displaying the TODOs in the directory.
 
