@@ -1,6 +1,5 @@
 #! /usr/bin/env node
 
-// TODO: Put this up on npm and installable via npm install todoview -g
 var express = require('express'),
     fs = require('fs-extended'),
     open = require('open'),
@@ -39,7 +38,12 @@ function listFiles(filepath) {
 
 
 function findTodosInFiles(filenames) {
-  return Promise.all(filenames.map(findTodosInFile));
+  return new Promise(function(resolve) {
+    Promise.all(filenames.map(findTodosInFile)).then(function(data) {
+      // Remove any empty files from the data.
+      resolve(data.filter(function(d) { return Object.keys(d).length; }));
+    });
+  });
 }
 
 
@@ -109,9 +113,6 @@ function findTodosInFile(filename) {
  */
 function runServer(data) {
 
-  // Remove any empty files from the data.
-  data = data.filter(function(d) { return Object.keys(d).length; });
-
   var app = express();
 
   app.use('/static', express.static(__dirname + '/static'));
@@ -123,7 +124,11 @@ function runServer(data) {
   });
 
   app.get('/todos', function(req, res){
-    res.json(data);
+    listFiles(".")
+      .then(findTodosInFiles)
+      .then(function(d){
+        res.json(d);
+      });
   });
 
   app.listen(config.port, function(){
@@ -133,9 +138,8 @@ function runServer(data) {
 }
 
 if (!module.parent) {
-  listFiles(".")
-    .then(findTodosInFiles)
-    .then(runServer);
+
+  runServer();
 
   // TODO: Implement watching functionality.
   //
