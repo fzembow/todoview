@@ -4,9 +4,6 @@ var express = require('express'),
     open = require('open'),
     path = require('path'),
     Promise = require('bluebird');
-Promise.promisifyAll(fs);
-
-var files = [];
 
 // TODO: Config should be configurable from within the app itself.
 var config = {
@@ -24,6 +21,14 @@ var config = {
 function listFiles(filepath) {
   return new Promise(function(resolve) {
     fs.listFiles(filepath, { recursive: 1 }, function (err, files) {
+      files = files.filter(function(f) {
+        var visible = config.includeHidden || !f.match(/^\.|\/.\//);
+        var blacklisted = config.blacklist.some(function(pattern) {
+          return f.match(pattern);
+        });
+
+        return visible && !blacklisted;
+      });
       resolve(files);
     });
   });
@@ -47,37 +52,49 @@ function findTodosInFile(filename) {
         return;
       }
 
-      var matchingLines = [];
+      var todos = [];
       var lines = data.split("\n");
 
-      for (var i = 0; i < lines.length; i++) {
-        var line = lines[i];
-        // TODO: Use a regexp here to only match "TODO" within comments.
-        if (line.indexOf("// TODO") != -1) {
+      lines.forEach(function(line, lineIndex) {
+        // TODO: Better regex to match TODOs anywhere within a block comment
+        if (!line.match(/^\/\/\s*TODO/)) return;
 
-          var startLineNumber = Math.max(0, i - config.linesToShow);
-          var endLineNumber = Math.min(lines.length - 1, i + config.linesToShow);
+        var startLineIndex = Math.max(0, lineIndex - config.linesToShow);
 
-          var match = {
-            extension: fileExtension,
-            startLineNumber: startLineNumber,
-            todoLineNumber: i,
-            // TODO: If there are multiple lines of a comment, highlight them all.
-            endLineNumber: endLineNumber,
-            lines: lines.slice(startLineNumber, endLineNumber),
-          };
-          matchingLines.push(match);
-        }
-      }
+        // Find bottom of multi line TODOs
+        var todoEndLineIndex = lineIndex;
+        do {
+          todoEndLineIndex ++;
+          // If line is not a comment line, then consider the comment done.
+          if (!lines[todoEndLineIndex].match(/^\/\//)) break;
 
-      if (!matchingLines.length) {
+          // If blank comment line,then this todo is done.
+          if (lines[todoEndLineIndex].match(/^\/\/\s*$/)) break;
+        } while (todoEndLineIndex < lines.length -1);
+
+        todoEndLineIndex --;
+
+        var endLineIndex = Math.min(lines.length - 1, todoEndLineIndex + config.linesToShow);
+
+        var todo = {
+          extension: fileExtension,
+          startLineNumber: startLineIndex + 1,
+          todoLineNumber: lineIndex + 1,
+          // TODO: If there are multiple lines of a comment, highlight them all.
+          endLineNumber: endLineIndex + 1,
+          lines: lines.slice(startLineIndex, endLineIndex),
+        };
+        todos.push(todo);
+      });
+
+      if (todos.length) {
+        resolve({
+          filename: filename,
+          todos: todos
+        });
+      } else {
         resolve({});
       }
-
-      resolve({
-        filename: filename,
-        todos: matchingLines
-      });
     });
   });
 }
