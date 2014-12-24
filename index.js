@@ -57,7 +57,7 @@ function findTodosInFile(filename) {
 
       lines.forEach(function(line, lineIndex) {
         // TODO: Better regex to match TODOs anywhere within a block comment
-        if (!line.match(/^\/\/\s*TODO/)) return;
+        if (!line.match(/^\s*\/\/\s*TODO/)) return;
 
         var startLineIndex = Math.max(0, lineIndex - config.linesToShow);
 
@@ -66,13 +66,13 @@ function findTodosInFile(filename) {
         do {
           todoEndLineIndex ++;
           // If line is not a comment line, then consider the comment done.
-          if (!lines[todoEndLineIndex].match(/^\/\//)) break;
+          if (!lines[todoEndLineIndex].match(/^\s*\/\//)) break;
 
           // If blank comment line,then this todo is done.
-          if (lines[todoEndLineIndex].match(/^\/\/\s*$/)) break;
+          if (lines[todoEndLineIndex].match(/^\s*\/\/\s*$/)) break;
         } while (todoEndLineIndex < lines.length -1);
 
-        todoEndLineIndex --;
+        todoEndLineIndex--;
 
         var endLineIndex = Math.min(lines.length - 1, todoEndLineIndex + config.linesToShow);
 
@@ -134,6 +134,9 @@ if (!module.parent) {
     .then(runServer);
 
   // TODO: Implement watching functionality.
+  // The idea would be that you can 
+  // This comment is also kept intentionally long in order
+  // to test how the app handles long comments.
   /*
     fs.watch('.', {}, function(event, filename) {
       console.log(event, filename);
