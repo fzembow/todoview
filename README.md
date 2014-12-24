@@ -1,6 +1,6 @@
 # Todoview
 
-A simple viewer for all TODOs in files in a directory, or the times you don't want to use bug trackers:
+A simple viewer for all TODOs in files in a directory, for the times you don't want to use bug trackers:
 
 ![todoview UI](docs/todoview.png)
 
@@ -20,7 +20,7 @@ First, install todoview:
 
 `npm install todoview -g`
 
-Then, run `todoview` in the directory in which you are working. A browser win
+Then, run `todoview` in the directory in which you are working. A browser window will open, displaying the TODOs in the directory.
 
 ## Acknowledgments
 
