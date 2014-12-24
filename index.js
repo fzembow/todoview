@@ -1,6 +1,6 @@
 // TODO: Put this up on npm and installable via npm install todoview -g
 var express = require('express'),
-    fs = require('fs'),
+    fs = require('fs-extended'),
     open = require('open'),
     path = require('path'),
     Promise = require('bluebird');
@@ -22,42 +22,9 @@ var config = {
 // TODO: Make this an Emitter? Emit filenames when they are encountered
 // and stream their processing.
 function listFiles(filepath) {
-
-  var all_paths = [];
-
-  function _listFiles(filepath) {
-    return new Promise(function(resolve){
-      fs.lstatAsync(filepath).then(function(stats){
-        if (stats.isFile()) {
-          all_paths.push(filepath);
-          resolve(filepath);
-        } else {
-          fs.readdirAsync(filepath).then(function(filesAndFolders){
-            if (!config.includeHidden) {
-              filesAndFolders = filesAndFolders.filter(function(filename) {
-                return filename[0] != '.';
-              });
-            }
-
-            var promises = [];
-            filesAndFolders.forEach(function(f) {
-              for (var i = 0; i < config.blacklist.length; i++) {
-                if (f.match(config.blacklist[i])) {
-                  return;
-                }
-              }
-              promises.push(_listFiles(path.join(filepath, f)));
-            });
-            resolve(Promise.all(promises));
-          });
-        }
-      });
-    });
-  }
-
-  return new Promise(function(resolve){
-    _listFiles(filepath).then(function(){
-      resolve(all_paths);
+  return new Promise(function(resolve) {
+    fs.listFiles(filepath, { recursive: 1 }, function (err, files) {
+      resolve(files);
     });
   });
 }
@@ -73,7 +40,7 @@ function findTodosInFile(filename) {
   var fileExtension = path.extname(filename).slice(1);
 
   return new Promise(function(resolve) {
-    // TODO: Use fs.createReadStream? 
+    // TODO: Use fs.createReadStream?
     fs.readFile(filename, {encoding: "utf-8"}, function(err, data){
       if (err) {
         resolve({});
