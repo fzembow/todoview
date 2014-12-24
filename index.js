@@ -1,12 +1,9 @@
 // TODO: Put this up on npm and installable via npm install todoview -g
 var express = require('express'),
-    fs = require('fs'),
+    fs = require('fs-extended'),
     open = require('open'),
     path = require('path'),
     Promise = require('bluebird');
-Promise.promisifyAll(fs);
-
-var files = [];
 
 // TODO: Config should be configurable from within the app itself.
 var config = {
@@ -22,42 +19,17 @@ var config = {
 // TODO: Make this an Emitter? Emit filenames when they are encountered
 // and stream their processing.
 function listFiles(filepath) {
+  return new Promise(function(resolve) {
+    fs.listFiles(filepath, { recursive: 1 }, function (err, files) {
+      files = files.filter(function(f) {
+        var visible = config.includeHidden || !f.match(/^\.|\/.\//);
+        var blacklisted = config.blacklist.some(function(pattern) {
+          return f.match(pattern);
+        });
 
-  var all_paths = [];
-
-  function _listFiles(filepath) {
-    return new Promise(function(resolve){
-      fs.lstatAsync(filepath).then(function(stats){
-        if (stats.isFile()) {
-          all_paths.push(filepath);
-          resolve(filepath);
-        } else {
-          fs.readdirAsync(filepath).then(function(filesAndFolders){
-            if (!config.includeHidden) {
-              filesAndFolders = filesAndFolders.filter(function(filename) {
-                return filename[0] != '.';
-              });
-            }
-
-            var promises = [];
-            filesAndFolders.forEach(function(f) {
-              for (var i = 0; i < config.blacklist.length; i++) {
-                if (f.match(config.blacklist[i])) {
-                  return;
-                }
-              }
-              promises.push(_listFiles(path.join(filepath, f)));
-            });
-            resolve(Promise.all(promises));
-          });
-        }
+        return visible && !blacklisted;
       });
-    });
-  }
-
-  return new Promise(function(resolve){
-    _listFiles(filepath).then(function(){
-      resolve(all_paths);
+      resolve(files);
     });
   });
 }
@@ -73,44 +45,56 @@ function findTodosInFile(filename) {
   var fileExtension = path.extname(filename).slice(1);
 
   return new Promise(function(resolve) {
-    // TODO: Use fs.createReadStream? 
+    // TODO: Use fs.createReadStream?
     fs.readFile(filename, {encoding: "utf-8"}, function(err, data){
       if (err) {
         resolve({});
         return;
       }
 
-      var matchingLines = [];
+      var todos = [];
       var lines = data.split("\n");
 
-      for (var i = 0; i < lines.length; i++) {
-        var line = lines[i];
-        // TODO: Use a regexp here to only match "TODO" within comments.
-        if (line.indexOf("// TODO") != -1) {
+      lines.forEach(function(line, lineIndex) {
+        // TODO: Better regex to match TODOs anywhere within a block comment
+        if (!line.match(/^\/\/\s*TODO/)) return;
 
-          var startLineNumber = Math.max(0, i - config.linesToShow);
-          var endLineNumber = Math.min(lines.length - 1, i + config.linesToShow);
+        var startLineIndex = Math.max(0, lineIndex - config.linesToShow);
 
-          var match = {
-            extension: fileExtension,
-            startLineNumber: startLineNumber,
-            todoLineNumber: i,
-            // TODO: If there are multiple lines of a comment, highlight them all.
-            endLineNumber: endLineNumber,
-            lines: lines.slice(startLineNumber, endLineNumber),
-          };
-          matchingLines.push(match);
-        }
-      }
+        // Find bottom of multi line TODOs
+        var todoEndLineIndex = lineIndex;
+        do {
+          todoEndLineIndex ++;
+          // If line is not a comment line, then consider the comment done.
+          if (!lines[todoEndLineIndex].match(/^\/\//)) break;
 
-      if (!matchingLines.length) {
+          // If blank comment line,then this todo is done.
+          if (lines[todoEndLineIndex].match(/^\/\/\s*$/)) break;
+        } while (todoEndLineIndex < lines.length -1);
+
+        todoEndLineIndex --;
+
+        var endLineIndex = Math.min(lines.length - 1, todoEndLineIndex + config.linesToShow);
+
+        var todo = {
+          extension: fileExtension,
+          startLineNumber: startLineIndex + 1,
+          todoLineNumber: lineIndex + 1,
+          // TODO: If there are multiple lines of a comment, highlight them all.
+          endLineNumber: endLineIndex + 1,
+          lines: lines.slice(startLineIndex, endLineIndex),
+        };
+        todos.push(todo);
+      });
+
+      if (todos.length) {
+        resolve({
+          filename: filename,
+          todos: todos
+        });
+      } else {
         resolve({});
       }
-
-      resolve({
-        filename: filename,
-        todos: matchingLines
-      });
     });
   });
 }
