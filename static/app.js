@@ -22,7 +22,8 @@ app.directive("codeblock", function($window) {
     link: function(scope, elem, attrs){ 
 
       var root = elem[0].children[0];
-      var todoLineNumber = scope.todo.todoLineNumber;
+      var startTodoLineNumber = scope.todo.startTodoLineNumber;
+      var endTodoLineNumber = scope.todo.endTodoLineNumber;
 
       var lines = scope.todo.lines;
 
@@ -41,7 +42,8 @@ app.directive("codeblock", function($window) {
         var lineNumber = document.createElement("div");
         lineNumber.className = "lineNumber";
         lineNumber.textContent = currentLineNumber;
-        if (currentLineNumber == todoLineNumber) {
+        if (currentLineNumber >= startTodoLineNumber &&
+            currentLineNumber <= endTodoLineNumber) {
           lineNumber.classList.add("todoline");
         }
         lineNumbers.appendChild(lineNumber);

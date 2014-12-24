@@ -16,8 +16,9 @@ var config = {
 };
 
 
-// TODO: Make this an Emitter? Emit filenames when they are encountered
-// and stream their processing.
+// TODO: Make this an Emitter?
+// Emit filenames when they are encountered and stream their processing.
+// Might be a premature optimization...
 function listFiles(filepath) {
   return new Promise(function(resolve) {
     fs.listFiles(filepath, { recursive: 1 }, function (err, files) {
@@ -64,7 +65,7 @@ function findTodosInFile(filename) {
         // Find bottom of multi line TODOs
         var todoEndLineIndex = lineIndex;
         do {
-          todoEndLineIndex ++;
+          todoEndLineIndex++;
           // If line is not a comment line, then consider the comment done.
           if (!lines[todoEndLineIndex].match(/^\s*\/\//)) break;
 
@@ -74,13 +75,14 @@ function findTodosInFile(filename) {
 
         todoEndLineIndex--;
 
-        var endLineIndex = Math.min(lines.length - 1, todoEndLineIndex + config.linesToShow);
+        var endLineIndex = Math.min(lines.length - 1, todoEndLineIndex + config.linesToShow + 1);
 
         var todo = {
+          // TODO: Extension doesn't change between TODOs, so no point in passing it like this.
           extension: fileExtension,
           startLineNumber: startLineIndex + 1,
-          todoLineNumber: lineIndex + 1,
-          // TODO: If there are multiple lines of a comment, highlight them all.
+          startTodoLineNumber: lineIndex + 1,
+          endTodoLineNumber: todoEndLineIndex + 1,
           endLineNumber: endLineIndex + 1,
           lines: lines.slice(startLineIndex, endLineIndex),
         };
@@ -134,9 +136,15 @@ if (!module.parent) {
     .then(runServer);
 
   // TODO: Implement watching functionality.
-  // The idea would be that you can 
+  //
+  // The idea would be that you can just run one of these todoviews
+  // in a directory you're working in, and when a file is added or updated
+  // the list of todos in the app would be kept in sync (most likely
+  // using a websocket or similar).
+  //
   // This comment is also kept intentionally long in order
   // to test how the app handles long comments.
+ 
   /*
     fs.watch('.', {}, function(event, filename) {
       console.log(event, filename);
