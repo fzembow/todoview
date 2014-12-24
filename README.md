@@ -20,7 +20,7 @@ First, install todoview:
 
 `sudo npm install todoview -g`
 
-Then, run `todoview` in the directory in which you are working. A browser window will open, displaying the TODOs in the directory.
+Then, run `todoview` (or just `tdv`) from the directory in which you are working. A browser window will open, displaying the TODOs in the directory.
 
 ## Acknowledgments
 

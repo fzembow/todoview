@@ -4,7 +4,8 @@
   "description": "Quick view of TODOs in a specific directory",
   "main": "index.js",
   "bin": {
-    "todoview": "index.js"
+    "todoview": "index.js",
+    "tdv": "index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
