@@ -8,9 +8,12 @@ app.factory("Todos", function($resource) {
   });
 });
 
+
 app.controller('TodoviewController', function($scope, Todos) {
   $scope.files = Todos.index();
+  // TODO: Create a controller that allows filtering in the frontend.
 });
+
 
 app.directive("codeblock", function($window) { 
   return { 
