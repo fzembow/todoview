@@ -12,6 +12,14 @@ app.factory("Todos", function($resource) {
 app.controller('TodoviewController', function($scope, Todos) {
   $scope.files = Todos.index();
   // TODO: Create a controller that allows filtering in the frontend.
+  
+  $scope.totalTodoCount = function(){
+    var count = 0;
+    $scope.files.forEach(function(file){
+      count += file.todos.length;
+    });
+    return count;
+  }
 
   var ws = new WebSocket('ws://localhost:8080');
   ws.onmessage = function (event) {

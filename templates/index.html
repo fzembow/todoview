@@ -1,7 +1,7 @@
 <!doctype html>
-<html ng-app="todoview">
+<html ng-app="todoview" ng-controller="TodoviewController">
   <head>
-    <title>todoview</title>
+    <title>view ({{totalTodoCount()}})</title>
     <link rel=stylesheet type="text/css" href="static/style.css">
     <link rel=stylesheet type="text/css" href="static/highlight/default.css">
     <link rel="icon" 
@@ -12,8 +12,8 @@
     <script src="static/highlight.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
   </head>
-  <body ng-controller="TodoviewController">
-    
+  <body>
+
     <div class="file" ng-repeat="file in files">
 
       <div class="fileheader">
