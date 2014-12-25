@@ -13,7 +13,8 @@ var config = {
   ],
   includeHidden: false,
   linesToShow: 9,
-  port: 10025
+  onlyAllowLocalhost: true,
+  port: 10025,
 };
 
 
@@ -121,6 +122,12 @@ function runServer(data) {
   });
 
   app.get('/todos', function(req, res){
+
+    if (config.onlyAllowLocalhost && req.hostname != 'localhost') {
+      res.send('[]');
+      return;
+    }
+
     listFiles(".")
       .then(findTodosInFiles)
       .then(function(d){

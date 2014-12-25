@@ -6,7 +6,7 @@ A simple viewer for all TODOs in files in a directory, for the times you don't w
 
 ## Background
 
-Many programmers I know like to leave TODOs in their code to keep track of cleanup work to be done later, or to plan out how something will be implemented before writing code. It's a lightweight to keep track of what needs to be done.
+Many programmers I know like to leave TODOs in their code to keep track of cleanup work to be done later, or to plan out how something will be implemented before writing code. It's a lightweight way to keep track of what needs to be done.
 
 If you're a vim user, you know that vim highlights the phrase "TODO" wherever it appears:
 
