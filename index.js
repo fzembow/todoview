@@ -4,7 +4,8 @@ var express = require('express'),
     fs = require('fs-extended'),
     open = require('open'),
     path = require('path'),
-    Promise = require('bluebird');
+    Promise = require('bluebird'),
+    WebSocketServer = require('ws').Server;
 
 // TODO: Config should be configurable from within the app itself.
 var config = {
@@ -15,6 +16,7 @@ var config = {
   linesToShow: 9,
   onlyAllowLocalhost: true,
   port: 10025,
+  webSocketPort: 8080,
 };
 
 
@@ -141,19 +143,37 @@ function runServer(data) {
 
 }
 
+/*
+ * Runs a web socket server to push update notifications to the client.
+ */
+function runWebSocketServer() {
+  var wss = new WebSocketServer({ port: config.webSocketPort });
+
+  wss.broadcast = function broadcast(msg) {
+    for(var i in this.clients) {
+      this.clients[i].send(msg);
+    }
+    return msg;
+  };
+
+  wss.update = wss.broadcast.bind(wss, 'update');
+  return wss;
+}
+
 if (!module.parent) {
 
   runServer();
+  var wss = runWebSocketServer();
 
-  // TODO: Implement watching functionality.
+  // TODO: Implement watching functionality, by sending 'update' to ws when
+  // a file changes and the TODOs change.
   //
   // The idea would be that you can just run one of these todoviews
   // in a directory you're working in, and when a file is added or updated
-  // the list of todos in the app would be kept in sync (most likely
-  // using a websocket or similar).
+  // the list of todos in the app would be kept in sync
   //
-  // This comment is also kept intentionally long in order
-  // to test how the app handles long comments.
+  // Updates should only be sent for files that already had TODOs (or when
+  // a new file is added)?
  
   /*
     fs.watch('.', {}, function(event, filename) {

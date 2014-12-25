@@ -12,6 +12,13 @@ app.factory("Todos", function($resource) {
 app.controller('TodoviewController', function($scope, Todos) {
   $scope.files = Todos.index();
   // TODO: Create a controller that allows filtering in the frontend.
+
+  var ws = new WebSocket('ws://localhost:8080');
+  ws.onmessage = function (event) {
+    if (event.data == "update") {
+      // TODO: Prompt user to refresh.
+    }
+  }
 });
 
 
