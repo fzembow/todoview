@@ -2,18 +2,42 @@ html, body{
   font-family: Helvetica, Arial, "sans-serif";
 }
 
-div.announcement{
+body{
+  padding-top: 20px;
+}
+
+div.navbar{
   padding: 10px;
-  text-align: center;
-  background: rgba(254, 236, 104, 0.76);
+  background: white;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1989;
+  height:20px;
+  box-shadow: 0px 2px 5px #ddd;
 }
 
-div.announcement a{
+div.navbar input.filter{
+  display:block;
+  float:right;
+  border-radius: 4px;
+  border: 0;
+  padding: 3px 8px;
+  border:1px solid #eee;
+}
+
+div.navbar input.filter:focus{
+  outline: 0;
+  box-shadow:0px 0px 3px green;
+}
+
+span.announcement{
+  color: #808080;
+  font-size: 13px;
+}
+
+span.announcement a{
   text-decoration: underline;
   cursor: pointer;
 }

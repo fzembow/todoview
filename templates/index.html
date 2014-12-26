@@ -13,13 +13,15 @@
   </head>
   <body>
 
-    <div ng-show="needsRefresh" class="announcement">
-      Files have changed.
-      <a ng-click="triggerRefresh()">Refresh</a>
-      <a ng-click="needsRefresh = false">Dismiss</a>
-    </div>
+    <div class="navbar">
+      <span class="announcement" ng-show="needsRefresh">
+        Files have changed.
+        <a ng-click="triggerRefresh()">Refresh</a>
+        <a ng-click="needsRefresh = false">Dismiss</a>
+      </span>
 
-    <input ng-model="todoFilter" placeholder="Filter TODOS..."></input>
+      <input class="filter" ng-model="todoFilter" placeholder="Filter TODOS..."></input>
+    </div>
 
     <div class="file" ng-repeat="file in files" ng-show="visibleTodos.length">
 
