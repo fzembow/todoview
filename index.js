@@ -7,17 +7,29 @@ var express = require('express'),
     Promise = require('bluebird'),
     WebSocketServer = require('ws').Server;
 
+
 // TODO: Config should be configurable from within the app itself.
 var config = {
   blacklist: [
     /^node_modules/
   ],
+  fileChangePollingInterval: 5000,
   includeHidden: false,
   linesToShow: 9,
   onlyAllowLocalhost: true,
   port: 10025,
   webSocketPort: 8080,
 };
+
+
+// Keep track of last modified time for all the files accessed to not
+// reprocess things needlessly.
+var mtimes = {};
+
+
+// Keep track of TODOs per file in order to only update the
+// frontend when those files change.
+var filesWithTodos = {};
 
 
 // TODO: Make this an Emitter?
@@ -44,7 +56,7 @@ function findTodosInFiles(filenames) {
   return new Promise(function(resolve) {
     Promise.all(filenames.map(findTodosInFile)).then(function(data) {
       // Remove any empty files from the data.
-      resolve(data.filter(function(d) { return Object.keys(d).length; }));
+      resolve(data.filter(function(d) { return d.todos.length > 0; }));
     });
   });
 }
@@ -53,8 +65,13 @@ function findTodosInFiles(filenames) {
 function findTodosInFile(filename) {
 
   return new Promise(function(resolve) {
-    // TODO: Use fs.createReadStream?
     fs.readFile(filename, {encoding: "utf-8"}, function(err, data){
+
+      fs.stat(filename, function(err, stats){
+        if (err) throw err;
+        mtimes[filename] = stats.mtime;
+      });
+
       if (err) {
         resolve({});
         return;
@@ -64,7 +81,9 @@ function findTodosInFile(filename) {
       var lines = data.split("\n");
 
       lines.forEach(function(line, lineIndex) {
-        // TODO: Better regex to match TODOs anywhere within a block comment
+        // TODO: Better regex to match TODOs anywhere within a block comment,
+        // and also PHP, HTML, bash, and other languages comments.
+        // In all likelihood, this would depend on the file extension.
         if (!line.match(/^\s*\/\/\s*TODO/)) return;
 
         var startLineIndex = Math.max(0, lineIndex - config.linesToShow);
@@ -94,15 +113,20 @@ function findTodosInFile(filename) {
         todos.push(todo);
       });
 
-      if (todos.length) {
-        resolve({
-          filename: filename,
-          extension: path.extname(filename).slice(1),
-          todos: todos
-        });
-      } else {
-        resolve({});
+      var fileInfo = {
+        filename: filename,
+        extension: path.extname(filename).slice(1),
+        todos: todos
       }
+      if (todos.length) {
+        filesWithTodos[filename] = todos.length;
+      } else {
+        if (filesWithTodos[filename] && filesWithTodos[filename] > 0 ) {
+          fileInfo.hadTodos = true;
+        }
+        delete filesWithTodos[filename];
+      }
+      resolve(fileInfo);
     });
   });
 }
@@ -140,8 +164,8 @@ function runServer(data) {
   app.listen(config.port, function(){
     open('http://localhost:' + config.port);
   });
-
 }
+
 
 /*
  * Runs a web socket server to push update notifications to the client.
@@ -160,24 +184,52 @@ function runWebSocketServer() {
   return wss;
 }
 
-if (!module.parent) {
 
+/*
+ * Checks for updates to any files being watched.
+ * Resolves to true when an update is needed, and false if nothing has changed.
+ * - If a file with known TODOs was updated, update it.
+ * - If a file without known TODOs was updated, and a TODO was added, update it.
+ */
+function checkForUpdatesToTodos() {
+  return new Promise(function(resolve) {
+    listFiles(".").then(function(filenames) {
+
+      filenames.forEach(function(filename) {
+
+        fs.stat(filename, function(err, stats){
+          if (err) throw err;
+          if (stats.mtime <= mtimes[filename]) {
+            return;
+          }
+
+          mtimes[filename] = stats.mtime;
+
+          findTodosInFile(filename).then(function(fileinfo){
+            // TODO: Optimize this so that spurious updates aren't sent down.
+            // For example, if there's a change but it doesn't affect anything
+            // shown in the frontend (eg, line numbers don't change and the edit
+            // isn't in a TODO line), then don't push an update.
+            if (fileinfo.todos.length || fileinfo.hadTodos) {
+              resolve(true);
+            }
+          });
+        });
+      });
+    });
+  });
+}
+
+
+if (!module.parent) {
   runServer();
   var wss = runWebSocketServer();
 
-  // TODO: Implement watching functionality, by sending 'update' to ws when
-  // a file changes and the TODOs change.
-  //
-  // The idea would be that you can just run one of these todoviews
-  // in a directory you're working in, and when a file is added or updated
-  // the list of todos in the app would be kept in sync
-  //
-  // Updates should only be sent for files that already had TODOs (or when
-  // a new file is added)?
- 
-  /*
-    fs.watch('.', {}, function(event, filename) {
-      console.log(event, filename);
+  setInterval(function(){
+    checkForUpdatesToTodos().then(function(needsUpdate){
+      if (needsUpdate) {
+        wss.update();
+      }
     });
-  */
+  }, config.fileChangePollingInterval);
 }

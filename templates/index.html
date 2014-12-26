@@ -10,9 +10,14 @@
     <script src="static/angular.min.js"></script>
     <script src="static/angular-resource.min.js"></script>
     <script src="static/highlight.js"></script>
-    <script>hljs.initHighlightingOnLoad();</script>
   </head>
   <body>
+
+    <div ng-show="needsRefresh" class="announcement">
+      Files have changed.
+      <a ng-click="triggerRefresh()">Refresh</a>
+      <a ng-click="needsRefresh = false">Dismiss</a>
+    </div>
 
     <div class="file" ng-repeat="file in files">
 

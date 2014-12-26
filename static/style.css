@@ -2,6 +2,22 @@ html, body{
   font-family: Helvetica, Arial, "sans-serif";
 }
 
+div.announcement{
+  padding: 10px;
+  text-align: center;
+  background: rgba(254, 236, 104, 0.76);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1989;
+}
+
+div.announcement a{
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 pre, code {
   margin: 0;
 }

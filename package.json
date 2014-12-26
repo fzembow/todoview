@@ -1,6 +1,6 @@
 {
   "name": "todoview",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Quick view of TODOs in a specific directory",
   "main": "index.js",
   "bin": {
