@@ -1,4 +1,5 @@
 var app = angular.module('todoview', ['ngResource']);
+// TODO: Make a sticky top-bar with filtering, options, and file list.
 
 
 // Set up REST API to fetch individual nodes.
@@ -11,13 +12,30 @@ app.factory("Todos", function($resource) {
 
 app.controller('TodoviewController', function($scope, Todos) {
   $scope.files = Todos.index();
-  // TODO: Create a controller that allows filtering in the frontend.
 
   $scope.needsRefresh = false;
 
   $scope.totalTodoCount = function(){
     return $scope.files.reduce(function(sum, file){
       return sum + file.todos.length}, 0);
+  }
+
+  $scope.todosMatchingText = function(todo){
+    var query = $scope.todoFilter;
+    if (!query || !query.length) {
+      return true;
+    }
+
+    // Run through the TODO lines to see if any match the query.
+    var todoStartIdx = todo.startTodoLineNumber - todo.startLineNumber;
+    var todoEndIdx = todo.endTodoLineNumber - todo.startLineNumber;
+    for (var idx = todoStartIdx; idx <= todoEndIdx; idx++) {
+      var line = todo.lines[idx];
+      if (todo.lines[idx].indexOf(query) != -1) {
+        return true;
+      }
+    }
+    return false;
   }
 
   $scope.triggerRefresh = function(){

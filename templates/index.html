@@ -19,14 +19,16 @@
       <a ng-click="needsRefresh = false">Dismiss</a>
     </div>
 
-    <div class="file" ng-repeat="file in files">
+    <input ng-model="todoFilter" placeholder="Filter TODOS..."></input>
+
+    <div class="file" ng-repeat="file in files" ng-show="visibleTodos.length">
 
       <div class="fileheader">
         <span class="title">{{file.filename}}</span>
-        ({{file.todos.length}})
+        ({{visibleTodos.length}})
       </div>
 
-      <div class="todo" ng-repeat="todo in file.todos">
+      <div class="todo" ng-repeat="todo in visibleTodos = (file.todos | filter: todosMatchingText)">
         <div codeblock file=file todo="todo"></div>
       </div>
 
