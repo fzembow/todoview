@@ -1,8 +1,6 @@
 var app = angular.module('todoview', ['ngResource']);
-// TODO: Make a sticky top-bar with filtering, options, and file list.
 
-
-// Set up REST API to fetch individual nodes.
+// Set up REST API to fetch list of TODOs.
 app.factory("Todos", function($resource) {
   return $resource("/todos", {}, {
       'index':   { method: 'GET', isArray: true },
