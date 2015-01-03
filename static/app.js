@@ -1,24 +1,26 @@
 var app = angular.module('todoview', ['ngResource']);
 
-// Set up REST API to fetch list of TODOs.
+// REST API to fetch list of TODOs.
 app.factory("Todos", function($resource) {
   return $resource("/todos", {}, {
       'index':   { method: 'GET', isArray: true },
   });
 });
 
+// REST API to fetch config
+app.factory("Config", function($resource) {
+  return $resource("/config", {}, {
+      'index':   { method: 'GET' },
+  });
+});
 
-app.controller('TodoviewController', function($scope, Todos) {
+
+app.controller('TodoviewController', function($scope, Todos, Config) {
   $scope.files = Todos.index();
 
-  $scope.needsRefresh = false;
+  $scope.config = Config.index();
 
-  $scope.showSettingsMenu = function(){
-    console.log("HI");
-    $scope.$apply(function(){
-      $scope.settingsMenuVisible = true;
-    });
-  }
+  $scope.needsRefresh = false;
 
   $scope.totalTodoCount = function(){
     return $scope.files.reduce(function(sum, file){

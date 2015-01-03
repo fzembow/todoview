@@ -8,10 +8,12 @@ var express = require('express'),
     WebSocketServer = require('ws').Server;
 
 
-// TODO: Config should be configurable from within the app itself.
+// This is the default config. If the directory from which todoview
+// is run contains a .todoview file, the config from that is used
+// instead.
 var config = {
   blacklist: [
-    /^node_modules/
+    "^node_modules"
   ],
   fileChangePollingInterval: 5000,
   includeHidden: false,
@@ -137,11 +139,14 @@ function findTodosInFile(filename) {
  */
 function runServer(data) {
 
+  // TODO: Load any .todoview files and parse them into the config.
+
   var app = express();
 
   app.use('/static', express.static(__dirname + '/static'));
 
   app.get('/', function(req, res){
+    // TODO: Only re-parse the template for development.
     fs.readFile(__dirname + '/templates/index.html', {encoding: "utf-8"}, function(err, template) {
       res.send(template);
     });
@@ -159,6 +164,15 @@ function runServer(data) {
       .then(function(d){
         res.json(d);
       });
+  });
+
+  app.get('/config', function(req, res){
+    res.json(config); 
+  });
+
+  app.post('/config', function(req, res){
+    // TODO: Save the config to the .todoview file in this directory.
+    console.log(req.body);
   });
 
   app.listen(config.port, function(){
