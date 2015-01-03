@@ -1,4 +1,10 @@
 #! /usr/bin/env node
+// TODO
+// - Upgraded filtering.
+// > X to clear the filter from the input.
+// > After a timeout, set a URL hash.
+// - Handle TODOs from a file called TODO in the same directory.
+// - Better UI treatment for TODOs in this list format
 
 var bodyParser = require('body-parser'),
     express = require('express'),
@@ -14,6 +20,7 @@ var CONFIG_FILENAME = path.join(process.cwd(), '.todoview');
 // is run contains a .todoview file, the config from that is used
 // instead.
 var DEFAULT_CONFIG = {
+  // TODO: Add option for auto-update;
   blacklist: [
     "^node_modules"
   ],
@@ -24,6 +31,19 @@ var DEFAULT_CONFIG = {
   port: 10025,
   webSocketPort: 8080,
 };
+Object.freeze(DEFAULT_CONFIG);
+
+
+/* 
+ * Returns a copy of the default config.
+ */
+function getDefaultConfig(){
+  var c = {};
+  for (var key in DEFAULT_CONFIG) {
+    c[key] = DEFAULT_CONFIG[key];
+  }
+  return c;
+}
 
 // This is the config for the currently running instance. It's filled
 // using the values in the .todoview file, if present, or the defaults
@@ -147,19 +167,20 @@ function loadConfig(){
   return new Promise(function(resolve){
     fs.readFile(CONFIG_FILENAME, {encoding: "utf8"}, function(err, data) {
       if (err) {
-        config = DEFAULT_CONFIG;
+        // The config file doesn't exist, so just use a copy of the defaults.
+        config = getDefaultConfig();
       } else {
         try {
-          var json = JSON.parse(data);
-          if (validateConfig(json)) {
-            config = json;
+          var c = validateConfig(data);
+          if (c) {
+            config = c;
           } else {
-            console.log("WARNING: The todoview config in %s is not valid, using default config instead.", CONFIG_FILENAME);
-            config = DEFAULT_CONFIG;
+            console.warn("WARNING: The todoview config in %s is not valid, using default config instead.", CONFIG_FILENAME);
+            config = getDefaultConfig();
           }
         } catch (e) {
-          console.log("WARNING: The todoview config in %s is not valid JSON, using default config instead.", CONFIG_FILENAME);
-          config = DEFAULT_CONFIG;
+          console.warn("WARNING: The todoview config in %s is not valid JSON, using default config instead.", CONFIG_FILENAME);
+          config = getDefaultConfig();
         }
       }
       resolve(true);
@@ -205,11 +226,11 @@ function runWebServer(data) {
   });
 
   app.post('/config', function(req, res){
-    if (validateConfig(req.body)){
+    var c = validateConfig(req.body);
+    if (c){
+      config = c;
 
-      config = req.body;
-
-      fs.writeFile(CONFIG_FILENAME, JSON.stringify(req.body), {encoding: "utf8"}, function(err){
+      fs.writeFile(CONFIG_FILENAME, JSON.stringify(c), {encoding: "utf8"}, function(err){
         if (err) console.log(err);
         res.sendStatus(200);
       });
@@ -229,14 +250,47 @@ function runWebServer(data) {
 
 
 /*
- * Validates a config, returning it if it's valid.
+ * Validates a config, returning a type-accuate version it if it's valid, null otherwise.
  */
 function validateConfig(config){
-  // TODO: Actually validate configs.
+
+  var validConfig = {};
+
   // First, check if the config is a string and try to JSON.parse it.
-  // This should also cast values to the right format. For example,
-  // numbers should be parsed as integers and not strings.
-  return true;
+  if (typeof config == 'string') {
+    try {
+      config = JSON.parse(config);
+    } catch(e) {
+      return null;
+    }
+  }
+
+  // Check that all the keys are there.
+  for (var key in DEFAULT_CONFIG) {
+
+    var val = config[key];
+
+    if (typeof val == 'undefined') {
+      return null;
+    }
+
+    var intendedType = typeof DEFAULT_CONFIG[key];
+    if (typeof key != intendedType) {
+      
+      // Try to cast it.
+      try {
+        if (intendedType == 'number') {
+          validConfig[key] = parseInt(val);
+        } else {
+          // TODO: Handle the other config types as well.
+          validConfig[key] = val;
+        }
+      } catch (e) {
+        return null;
+      }
+    }
+  }
+  return validConfig;
 }
 
 
@@ -301,6 +355,7 @@ if (!module.parent) {
     var wss = runWebSocketServer();
 
     runWebServer().then(function(){
+      // TODO: Use timeout instead of interval so that the period can be adjusted.
       setInterval(function(){
         checkForUpdatesToTodos().then(function(needsUpdate){
           if (needsUpdate) wss.update();
