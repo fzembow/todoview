@@ -61,7 +61,7 @@ app.controller('TodoviewController', function($scope, Todos, Config) {
     // This should be done in the ngResource.
     Config.save($scope.config).$promise.then(function(){
 
-      // TODO: If there were errors, display them and don't close the menu.
+      // TO DO: If there were errors, display them and don't close the menu.
       
       $scope.settingsMenuVisible = false;
       $scope.triggerRefresh();
@@ -73,9 +73,11 @@ app.controller('TodoviewController', function($scope, Todos, Config) {
     var ws = new WebSocket('ws://localhost:' + port);
     ws.onmessage = function (event) {
       if (event.data == "update") {
-        $scope.$apply(function(){
+        if ($scope.config.autoRefresh === true) {
+          $scope.triggerRefresh();
+        } else {
           $scope.needsRefresh = true;
-        });
+        }
       }
     }
   }

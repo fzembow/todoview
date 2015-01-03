@@ -36,6 +36,9 @@
             <label for="blacklist">how often (ms) to poll for changes to files</label>
             <input ng-model="config.fileChangePollingInterval" />
 
+            <label for="blacklist">refresh automatically when files change?</label>
+            <input ng-model="config.autoRefresh" type="checkbox" />
+
             <label for="blacklist">include hidden files and directories?</label>
             <input ng-model="config.includeHidden" type="checkbox" />
 

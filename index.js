@@ -3,7 +3,7 @@
 // - Upgraded filtering.
 // > X to clear the filter from the input.
 // > After a timeout, set a URL hash.
-// - Handle TODOs from a file called TODO in the same directory.
+// - Handle TODOs, one per line, from a file called TODO in the same directory.
 // - Better UI treatment for TODOs in this list format
 
 var bodyParser = require('body-parser'),
@@ -20,7 +20,7 @@ var CONFIG_FILENAME = path.join(process.cwd(), '.todoview');
 // is run contains a .todoview file, the config from that is used
 // instead.
 var DEFAULT_CONFIG = {
-  // TODO: Add option for auto-update;
+  autoRefresh: false,
   blacklist: [
     "^node_modules"
   ],
@@ -354,13 +354,15 @@ if (!module.parent) {
     
     var wss = runWebSocketServer();
 
+    function maybeUpdateFileInfo(){
+      checkForUpdatesToTodos().then(function(needsUpdate){
+        if (needsUpdate) wss.update();
+      });
+      setTimeout(maybeUpdateFileInfo, config.fileChangePollingInterval);
+    }
+
     runWebServer().then(function(){
-      // TODO: Use timeout instead of interval so that the period can be adjusted.
-      setInterval(function(){
-        checkForUpdatesToTodos().then(function(needsUpdate){
-          if (needsUpdate) wss.update();
-        });
-      }, config.fileChangePollingInterval);
+      setTimeout(maybeUpdateFileInfo, config.fileChangePollingInterval);
     });
   });
 }
