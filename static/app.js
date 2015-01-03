@@ -13,6 +13,13 @@ app.controller('TodoviewController', function($scope, Todos) {
 
   $scope.needsRefresh = false;
 
+  $scope.showSettingsMenu = function(){
+    console.log("HI");
+    $scope.$apply(function(){
+      $scope.settingsMenuVisible = true;
+    });
+  }
+
   $scope.totalTodoCount = function(){
     return $scope.files.reduce(function(sum, file){
       return sum + file.todos.length}, 0);

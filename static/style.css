@@ -7,7 +7,7 @@ body{
 }
 
 div.btn{
-  box-shadow: 0px 1px 3px #555;
+  box-shadow: 0px 1px 3px #ddd;
   display: inline-block;
   padding: 3px 8px;
   border-radius: 4px;
@@ -34,30 +34,71 @@ div.navbar{
   z-index: 1989;
   height:20px;
   box-shadow: 0px 2px 5px #ddd;
+
+  font-size: 13px;
 }
 
-div.navbar input.filter{
+div.navbar input, div.navbar textarea{
   display:block;
-  float:right;
   border-radius: 4px;
   border: 0;
   padding: 3px 8px;
   border:1px solid #eee;
 }
 
-div.navbar input.filter:focus{
+div.navbar input:focus, div.navbar textarea:focus{
   outline: 0;
   box-shadow:0px 0px 3px green;
 }
 
+div.navbar input.filter{
+  float:right;
+}
+
 span.announcement{
   color: #808080;
-  font-size: 13px;
 }
 
 span.announcement a{
   text-decoration: underline;
   cursor: pointer;
+}
+
+div.navbar span.settings{
+  float:right;
+  margin:0px 10px;
+}
+
+div.menus{
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+}
+
+div.menus div.menu{
+  padding:10px;
+  position:absolute;
+  top:0;
+  box-shadow: 0px 3px 4px #ddd;
+  background:white;
+  width:300px;
+  z-index:1990;
+}
+
+div.menu label{
+  color: gray;
+  margin-top: 5px;
+  display: block;
+}
+
+div.menu input, div.menu textarea{
+  width: 100%;
+  padding: 3px 0;
+}
+
+div.menus div.menu.settings{
+  right:0;
 }
 
 pre, code {

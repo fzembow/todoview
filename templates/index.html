@@ -14,30 +14,62 @@
   <body>
 
     <div class="navbar">
-      <span class="announcement" ng-show="needsRefresh">
-        Files have changed.
-        <a ng-click="triggerRefresh()">Refresh</a>
-        <a ng-click="needsRefresh = false">Dismiss</a>
-      </span>
+      <div>
+        <span class="announcement" ng-show="needsRefresh">
+          Files have changed.
+          <a ng-click="triggerRefresh()">Refresh</a>
+          <a ng-click="needsRefresh = false">Dismiss</a>
+        </span>
 
-      <input class="filter" ng-model="todoFilter" placeholder="Filter TODOS..."></input>
-    </div>
+        <span ng-mouseover="settingsMenuVisible = true" class="settings">Settings</span>
 
-    <div class="file" ng-repeat="file in files" ng-show="visibleTodos.length">
-
-      <div class="fileheader">
-        <span class="title">{{file.filename}}</span>
-        ({{visibleTodos.length}})
+        <input class="filter" ng-model="todoFilter" placeholder="Filter TODOS..."></input>
       </div>
 
-      <div class="todo" ng-repeat="todo in visibleTodos = (file.todos | filter: todosMatchingText)">
-        <div codeblock file=file todo="todo"></div>
-      </div>
+      <div class="menus">
+        <div ng-show="settingsMenuVisible" class="menu settings">
+          <label for="blacklist">blacklisted files and directories (one per line)</label>
+          <textarea ng-model="blacklist" name="blacklist"></textarea>
 
+          <label for="blacklist">how often (ms) to poll for changes to files</label>
+          <input ng-model="fileChangePollingInterval" />
+
+          <label for="blacklist">include hidden files and directories?</label>
+          <input ng-model="includeHidden" type="checkbox" />
+
+          <label for="blacklist">how many lines to show around a TODO</label>
+          <input ng-model="linesToShow" />
+
+          <label for="blacklist">only allow access from localhost?</label>
+          <input ng-model="onlyAllowLocalhost" type="checkbox"/>
+
+          <label for="blacklist">what port to run the web app on</label>
+          <input ng-model="port" />
+
+          <label for="blacklist">what port to run the websocket on (to listen for changes)?</label>
+          <input ng-model="webSocketPort">
+        </div>
+      </div>
     </div>
 
-    <div class=btn ng-show="todoFilter" ng-click="todoFilter = ''">
-        Clear filter
+
+    <div ng-mouseover="settingsMenuVisible = false;">
+      <div class="file" ng-repeat="file in files" ng-show="visibleTodos.length">
+
+        <div class="fileheader">
+          <span class="title">{{file.filename}}</span>
+          ({{visibleTodos.length}})
+        </div>
+
+        <div class="todo" ng-repeat="todo in visibleTodos = (file.todos | filter: todosMatchingText)">
+          <div codeblock file=file todo="todo"></div>
+        </div>
+
+      </div>
+
+      <div class=btn ng-show="todoFilter" ng-click="todoFilter = ''">
+          Clear filter
+      </div>
     </div>
 
     <script src="static/app.js"></script>
