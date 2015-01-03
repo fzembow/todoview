@@ -1,17 +1,19 @@
 #! /usr/bin/env node
 
-var express = require('express'),
+var bodyParser = require('body-parser'),
+    express = require('express'),
     fs = require('fs-extended'),
     open = require('open'),
     path = require('path'),
     Promise = require('bluebird'),
     WebSocketServer = require('ws').Server;
 
+var CONFIG_FILENAME = path.join(process.cwd(), '.todoview');
 
 // This is the default config. If the directory from which todoview
 // is run contains a .todoview file, the config from that is used
 // instead.
-var config = {
+var DEFAULT_CONFIG = {
   blacklist: [
     "^node_modules"
   ],
@@ -23,6 +25,10 @@ var config = {
   webSocketPort: 8080,
 };
 
+// This is the config for the currently running instance. It's filled
+// using the values in the .todoview file, if present, or the defaults
+// if missing.
+var config = {};
 
 // Keep track of last modified time for all the files accessed to not
 // reprocess things needlessly.
@@ -67,7 +73,7 @@ function findTodosInFiles(filenames) {
 function findTodosInFile(filename) {
 
   return new Promise(function(resolve) {
-    fs.readFile(filename, {encoding: "utf-8"}, function(err, data){
+    fs.readFile(filename, {encoding: "utf8"}, function(err, data){
 
       fs.stat(filename, function(err, stats){
         if (err) throw err;
@@ -135,19 +141,47 @@ function findTodosInFile(filename) {
 
 
 /*
+ * Loads the configuration on initial load.
+ */
+function loadConfig(){
+  return new Promise(function(resolve){
+    fs.readFile(CONFIG_FILENAME, {encoding: "utf8"}, function(err, data) {
+      if (err) {
+        config = DEFAULT_CONFIG;
+      } else {
+        try {
+          var json = JSON.parse(data);
+          if (validateConfig(json)) {
+            config = json;
+          } else {
+            console.log("WARNING: The todoview config in %s is not valid, using default config instead.", CONFIG_FILENAME);
+            config = DEFAULT_CONFIG;
+          }
+        } catch (e) {
+          console.log("WARNING: The todoview config in %s is not valid JSON, using default config instead.", CONFIG_FILENAME);
+          config = DEFAULT_CONFIG;
+        }
+      }
+      resolve(true);
+    });
+  });
+}
+
+
+/*
  * Runs a local web server to show the files.
  */
-function runServer(data) {
-
-  // TODO: Load any .todoview files and parse them into the config.
+function runWebServer(data) {
 
   var app = express();
+
+  app.use(bodyParser.json());
 
   app.use('/static', express.static(__dirname + '/static'));
 
   app.get('/', function(req, res){
     // TODO: Only re-parse the template for development.
-    fs.readFile(__dirname + '/templates/index.html', {encoding: "utf-8"}, function(err, template) {
+    fs.readFile(__dirname + '/templates/index.html', {encoding: "utf8"}, function(err, template) {
       res.send(template);
     });
   });
@@ -171,13 +205,38 @@ function runServer(data) {
   });
 
   app.post('/config', function(req, res){
-    // TODO: Save the config to the .todoview file in this directory.
-    console.log(req.body);
+    if (validateConfig(req.body)){
+
+      config = req.body;
+
+      fs.writeFile(CONFIG_FILENAME, JSON.stringify(req.body), {encoding: "utf8"}, function(err){
+        if (err) console.log(err);
+        res.sendStatus(200);
+      });
+      
+    } else {
+      // TODO: Send a 50x when the config isn't valid on the server.
+    }
   });
 
-  app.listen(config.port, function(){
-    open('http://localhost:' + config.port);
+  return new Promise(function(resolve) {
+    app.listen(config.port, function(){
+      open('http://localhost:' + config.port);
+      resolve(true);
+    });
   });
+}
+
+
+/*
+ * Validates a config, returning it if it's valid.
+ */
+function validateConfig(config){
+  // TODO: Actually validate configs.
+  // First, check if the config is a string and try to JSON.parse it.
+  // This should also cast values to the right format. For example,
+  // numbers should be parsed as integers and not strings.
+  return true;
 }
 
 
@@ -194,6 +253,7 @@ function runWebSocketServer() {
     return msg;
   };
 
+  // Shorthand for sending the 'update' message to all clients.
   wss.update = wss.broadcast.bind(wss, 'update');
   return wss;
 }
@@ -236,14 +296,16 @@ function checkForUpdatesToTodos() {
 
 
 if (!module.parent) {
-  runServer();
-  var wss = runWebSocketServer();
+  loadConfig().then(function(){
+    
+    var wss = runWebSocketServer();
 
-  setInterval(function(){
-    checkForUpdatesToTodos().then(function(needsUpdate){
-      if (needsUpdate) {
-        wss.update();
-      }
+    runWebServer().then(function(){
+      setInterval(function(){
+        checkForUpdatesToTodos().then(function(needsUpdate){
+          if (needsUpdate) wss.update();
+        });
+      }, config.fileChangePollingInterval);
     });
-  }, config.fileChangePollingInterval);
+  });
 }

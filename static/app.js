@@ -3,14 +3,15 @@ var app = angular.module('todoview', ['ngResource']);
 // REST API to fetch list of TODOs.
 app.factory("Todos", function($resource) {
   return $resource("/todos", {}, {
-      'index':   { method: 'GET', isArray: true },
+    'index': { method: 'GET', isArray: true },
   });
 });
 
 // REST API to fetch config
 app.factory("Config", function($resource) {
   return $resource("/config", {}, {
-      'index':   { method: 'GET' },
+    'index': { method: 'GET' },
+    'save':  { method: 'POST' },
   });
 });
 
@@ -18,7 +19,10 @@ app.factory("Config", function($resource) {
 app.controller('TodoviewController', function($scope, Todos, Config) {
   $scope.files = Todos.index();
 
-  $scope.config = Config.index();
+  Config.index().$promise.then(function(config){
+    $scope.config = config;
+    initWebsocket(config.webSocketPort);
+  });
 
   $scope.needsRefresh = false;
 
@@ -52,12 +56,27 @@ app.controller('TodoviewController', function($scope, Todos, Config) {
     });
   }
 
-  var ws = new WebSocket('ws://localhost:8080');
-  ws.onmessage = function (event) {
-    if (event.data == "update") {
-      $scope.$apply(function(){
-        $scope.needsRefresh = true;
-      });
+  $scope.saveConfig = function(){
+    // TODO: If the config's blacklist were updated, make it an array again.
+    // This should be done in the ngResource.
+    Config.save($scope.config).$promise.then(function(){
+
+      // TODO: If there were errors, display them and don't close the menu.
+      
+      $scope.settingsMenuVisible = false;
+      $scope.triggerRefresh();
+
+    });
+  }
+
+  function initWebsocket(port){
+    var ws = new WebSocket('ws://localhost:' + port);
+    ws.onmessage = function (event) {
+      if (event.data == "update") {
+        $scope.$apply(function(){
+          $scope.needsRefresh = true;
+        });
+      }
     }
   }
 });

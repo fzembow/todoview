@@ -28,26 +28,31 @@
 
       <div class="menus">
         <div ng-show="settingsMenuVisible" class="menu settings">
-          <label for="blacklist">blacklisted files and directories (one per line)</label>
-          <textarea ng-model="config.blacklist" name="blacklist"></textarea>
 
-          <label for="blacklist">how often (ms) to poll for changes to files</label>
-          <input ng-model="config.fileChangePollingInterval" />
+          <form name="settingsMenu" ng-submit="saveConfig()">
+            <label for="blacklist">blacklisted files and directories (one per line)</label>
+            <textarea ng-model="config.blacklist" name="blacklist"></textarea>
 
-          <label for="blacklist">include hidden files and directories?</label>
-          <input ng-model="config.includeHidden" type="checkbox" />
+            <label for="blacklist">how often (ms) to poll for changes to files</label>
+            <input ng-model="config.fileChangePollingInterval" />
 
-          <label for="blacklist">how many lines to show around a TODO</label>
-          <input ng-model="config.linesToShow" />
+            <label for="blacklist">include hidden files and directories?</label>
+            <input ng-model="config.includeHidden" type="checkbox" />
 
-          <label for="blacklist">only allow access from localhost?</label>
-          <input ng-model="config.onlyAllowLocalhost" type="checkbox"/>
+            <label for="blacklist">how many lines to show around a TODO</label>
+            <input ng-model="config.linesToShow" />
 
-          <label for="blacklist">what port to run the web app on</label>
-          <input ng-model="config.port" />
+            <label for="blacklist">only allow access from localhost?</label>
+            <input ng-model="config.onlyAllowLocalhost" type="checkbox"/>
 
-          <label for="blacklist">what port to run the websocket on (to listen for changes)?</label>
-          <input ng-model="config.webSocketPort">
+            <label for="blacklist">what port to run the web app on</label>
+            <input ng-model="config.port" />
+
+            <label for="blacklist">what port to run the websocket on (to listen for changes)?</label>
+            <input ng-model="config.webSocketPort">
+
+            <input type="submit" class="btn primary submit" value="save changes">
+          </form>
         </div>
       </div>
     </div>
