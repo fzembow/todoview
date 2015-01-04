@@ -34,7 +34,7 @@
 
           <form name="settingsMenu" ng-submit="saveConfig()">
             <label for="blacklist">blacklisted files and directories (one per line)</label>
-            <textarea ng-model="config.blacklist" name="blacklist"></textarea>
+            <textarea ng-model="config.blacklist" name="blacklist" split-array></textarea>
 
             <label for="blacklist">how often (ms) to poll for changes to files</label>
             <input ng-model="config.fileChangePollingInterval" />

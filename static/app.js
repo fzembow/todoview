@@ -10,27 +10,8 @@ app.factory("Todos", function($resource) {
 // REST API to fetch config
 app.factory("Config", function($resource) {
   return $resource("/config", {}, {
-    'index': {
-      method: 'GET',
-      transformResponse: function(data, headersGetter) {
-        data = angular.fromJson(data);
-        // Split blacklist by newlines.
-        if (typeof data.blacklist == "object") {
-          data.blacklist = data.blacklist.join("\n");
-        }
-        return data;
-      },
-    },
-    'save':  {
-      method: 'POST',
-      transformRequest: function(data, headersGetter) {
-        // Split blacklist by newlines.
-        if (typeof data.blacklist == "string") {
-          data.blacklist = data.blacklist.split(/[,\n]+/);
-        }
-        return angular.toJson(data);
-      }
-    },
+    'index': { method: 'GET' },
+    'save': { method: 'POST'},
   });
 });
 
@@ -81,7 +62,6 @@ app.controller('TodoviewController', function($scope, Todos, Config) {
           $scope.settingsMenuVisible = false;
           $scope.triggerRefresh();
           $scope.settingsMenu.$setPristine();
-          // TODO: Don't re-join the backlist with commas.
         })
         .catch(function(){
           // TODO: If there were config errors, display them on the form!
@@ -146,4 +126,25 @@ app.directive("codeblock", function($window) {
       hljs.highlightBlock(code);
     } 
   } 
+});
+
+/*
+ * Converts arrays as newline-separated text (bidirectionally).
+ */
+app.directive('splitArray', function() {
+  return {
+    restrict: 'A',
+    require: 'ngModel',
+    link: function(scope, element, attr, ngModel) {
+
+      ngModel.$parsers.push(function(text){
+        return text.split("\n");
+      });
+
+      ngModel.$formatters.push(function toUser(array) {                        
+        if (array && array.join) return array.join("\n");
+        return array;
+      });
+    }
+  };
 });
