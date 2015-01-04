@@ -61,8 +61,25 @@ div.navbar input:focus, div.navbar textarea:focus{
   box-shadow:0px 0px 3px green;
 }
 
-div.navbar input.filter{
-  float:right;
+div.navbar span.filter{
+  float: right;
+  position: relative;
+}
+
+span.filter div.close{
+  position: absolute;
+  padding: 2px 6px;
+  right: 2px;
+  top: 1px;
+  background: rgba(255, 255, 255, 0.9);
+  width: 12px;
+  text-align: center;
+  cursor: pointer;
+  color: grey;
+}
+
+span.filter div.close:hover{
+  color: black;
 }
 
 span.announcement{

@@ -1,8 +1,6 @@
 #! /usr/bin/env node
 // TODO
-// - Upgraded filtering.
-// > X to clear the filter from the input.
-// > After a timeout, set a URL hash?
+// - Upgraded filtering: after a timeout, set a URL hash?
 // - Handle TODOs, one per line, from a file called TODO in the same directory.
 // - Better UI treatment for TODOs in this list format
 
@@ -203,7 +201,6 @@ function runWebServer(data) {
   app.use('/static', express.static(__dirname + '/static'));
 
   app.get('/', function(req, res){
-    // TODO: Only re-parse the template for development.
     fs.readFile(__dirname + '/templates/index.html', {encoding: "utf8"}, function(err, template) {
       res.send(template);
     });
@@ -369,6 +366,7 @@ if (!module.parent) {
     var wss = runWebSocketServer();
 
     function maybeUpdateFileInfo(){
+      // TODO: Make sure that this doesn't run again if the previous update hadn't completed.
       checkForUpdatesToTodos().then(function(needsUpdate){
         if (needsUpdate) wss.update();
       });

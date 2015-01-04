@@ -23,7 +23,10 @@
 
         <span ng-mouseover="settingsMenuVisible = true" class="settings">Settings</span>
 
-        <input class="filter" ng-model="todoFilter" placeholder="Filter TODOS..."></input>
+        <span class="filter">
+          <input class="filter" ng-model="todoFilter" placeholder="Filter TODOS..."></input>
+          <div ng-show="todoFilter" ng-click="todoFilter = ''" class="close">&times;</div>
+        </span>
       </div>
 
       <div class="menus">
