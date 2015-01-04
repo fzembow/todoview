@@ -10,8 +10,27 @@ app.factory("Todos", function($resource) {
 // REST API to fetch config
 app.factory("Config", function($resource) {
   return $resource("/config", {}, {
-    'index': { method: 'GET' },
-    'save':  { method: 'POST' },
+    'index': {
+      method: 'GET',
+      transformResponse: function(data, headersGetter) {
+        data = angular.fromJson(data);
+        // Split blacklist by newlines.
+        if (typeof data.blacklist == "object") {
+          data.blacklist = data.blacklist.join("\n");
+        }
+        return data;
+      },
+    },
+    'save':  {
+      method: 'POST',
+      transformRequest: function(data, headersGetter) {
+        // Split blacklist by newlines.
+        if (typeof data.blacklist == "string") {
+          data.blacklist = data.blacklist.split(/[,\n]+/);
+        }
+        return angular.toJson(data);
+      }
+    },
   });
 });
 
@@ -57,16 +76,17 @@ app.controller('TodoviewController', function($scope, Todos, Config) {
   }
 
   $scope.saveConfig = function(){
-    // TODO: If the config's blacklist were updated, make it an array again.
-    // This should be done in the ngResource.
-    Config.save($scope.config).$promise.then(function(){
-
-      // TO DO: If there were errors, display them and don't close the menu.
-      
-      $scope.settingsMenuVisible = false;
-      $scope.triggerRefresh();
-
-    });
+    Config.save($scope.config).$promise
+        .then(function(){
+          $scope.settingsMenuVisible = false;
+          $scope.triggerRefresh();
+          $scope.settingsMenu.$setPristine();
+          // TODO: Don't re-join the backlist with commas.
+        })
+        .catch(function(){
+          // TODO: If there were config errors, display them on the form!
+          console.log("Invalid form");
+        });
   }
 
   function initWebsocket(port){

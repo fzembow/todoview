@@ -2,7 +2,7 @@
 // TODO
 // - Upgraded filtering.
 // > X to clear the filter from the input.
-// > After a timeout, set a URL hash.
+// > After a timeout, set a URL hash?
 // - Handle TODOs, one per line, from a file called TODO in the same directory.
 // - Better UI treatment for TODOs in this list format
 
@@ -20,7 +20,7 @@ var CONFIG_FILENAME = path.join(process.cwd(), '.todoview');
 // is run contains a .todoview file, the config from that is used
 // instead.
 var DEFAULT_CONFIG = {
-  autoRefresh: false,
+  autoRefresh: true,
   blacklist: [
     "^node_modules"
   ],
@@ -141,6 +141,8 @@ function findTodosInFile(filename) {
         todos.push(todo);
       });
 
+      // TODO: Merge TODOs that are close to one another.
+
       var fileInfo = {
         filename: filename,
         extension: path.extname(filename).slice(1),
@@ -236,7 +238,7 @@ function runWebServer(data) {
       });
       
     } else {
-      // TODO: Send a 50x when the config isn't valid on the server.
+      res.sendStatus(400);
     }
   });
 
@@ -265,31 +267,43 @@ function validateConfig(config){
     }
   }
 
-  // Check that all the keys are there.
   for (var key in DEFAULT_CONFIG) {
 
     var val = config[key];
 
-    if (typeof val == 'undefined') {
+    // Check that all the keys are there.
+    if (typeof val == 'undefined' || val == null) {
       return null;
     }
 
     var intendedType = typeof DEFAULT_CONFIG[key];
-    if (typeof key != intendedType) {
+    if (typeof val == intendedType) {
+      validConfig[key] = val;
+    } else {
       
-      // Try to cast it.
+      // Try to cast values to the correct type, eg strings to numbers.
       try {
         if (intendedType == 'number') {
-          validConfig[key] = parseInt(val);
+          // TODO: Also allow setting min/max ranges for numeric keys.
+          var n = parseInt(val);
+          if (n === null || isNaN(n)) {
+            console.warn("WARNING: Expected a number, got %s for config key %s", val, key);
+            return null;
+          }
+          validConfig[key] = n;
+        } else if (intendedType == 'boolean') {
+          validConfig[key] = val == true;
         } else {
-          // TODO: Handle the other config types as well.
-          validConfig[key] = val;
+          // When adding new types of Handle other possib
+          console.warn("WARNING: Encountered type %s when parsing a config, expecting ", typeof val, intendedType);
+          return null;
         }
       } catch (e) {
         return null;
       }
     }
   }
+
   return validConfig;
 }
 
